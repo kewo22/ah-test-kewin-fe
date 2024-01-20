@@ -2,17 +2,11 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { storeStudents } from "@/lib/data/student";
+import { transformToStudentObj } from "@/lib/common";
+import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
+import StudentForm from "@/components/shared/StudentForm";
 
 const CreateStudentSchema = z.object({
   name: z.string().min(1, {
@@ -25,9 +19,7 @@ const CreateStudentSchema = z.object({
   address: z.string().min(1, {
     message: "Required",
   }),
-  dob: z.string().min(1, {
-    message: "Required",
-  }),
+  dob: z.string().min(1, { message: "Required" }),
   no_of_modules_completed: z.string().min(1, {
     message: "Required",
   }),
@@ -36,7 +28,11 @@ const CreateStudentSchema = z.object({
   }),
 });
 
+export type CreateStudentSchemaT = z.infer<typeof CreateStudentSchema>;
+
 export default function CreateStudent() {
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof CreateStudentSchema>>({
     resolver: zodResolver(CreateStudentSchema),
     defaultValues: {
@@ -50,121 +46,30 @@ export default function CreateStudent() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof CreateStudentSchema>) => {
-    console.log("🚀 ~ onSubmit ~ e:", values);
-    //
+  const onSubmit = async (values: CreateStudentSchemaT) => {
+    const transformed = transformToStudentObj(values);
+    const res = await storeStudents(transformed);
+    if (res) {
+      toast({
+        title: "Success",
+        description: "Student saved successfully",
+        className: cn(
+          "top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4 bg-green-500 text-white"
+        ),
+      });
+    } else {
+      toast({
+        title: "Failed",
+        description: "Student save failed",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-10 my-20">
       <h1 className="text-2xl font-bold text-center">Create New Student</h1>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormDescription></FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormDescription></FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="contact_no"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contact</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormDescription></FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Address</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormDescription></FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="dob"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>DOB</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormDescription></FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="no_of_modules_completed"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Modules Completed</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormDescription></FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="average_marks"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Average Marks</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormDescription></FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <Button type="submit" className="mx-auto block">
-            Create
-          </Button>
-        </form>
-      </Form>
+      <StudentForm form={form} onSubmit={onSubmit} />
     </div>
   );
 }

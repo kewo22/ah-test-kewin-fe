@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import CreateStudent from "./pages/CreateStudent.tsx";
 import EditStudent from "./pages/EditStudent.tsx";
 import Students from "./pages/Students.tsx";
+import { Toaster } from "./components/ui/toaster.tsx";
 
 const router = createBrowserRouter([
   {
@@ -20,7 +21,7 @@ const router = createBrowserRouter([
         element: <CreateStudent />,
       },
       {
-        path: "student/:id",
+        path: "student/edit/:id",
         element: <EditStudent />,
       },
     ],
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
+    <Toaster />
     <RouterProvider router={router} />
   </React.StrictMode>
 );
